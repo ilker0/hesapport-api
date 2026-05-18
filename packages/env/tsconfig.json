@@ -1,0 +1,3 @@
+{
+  "extends": "@hesapport-api/config/tsconfig.base.json"
+}
