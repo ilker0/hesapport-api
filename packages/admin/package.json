@@ -1,31 +1,26 @@
 {
-  "name": "@hesapport-api/auth",
+  "name": "@hesapport-api/admin",
   "type": "module",
   "exports": {
     ".": {
       "default": "./src/index.ts"
-    },
-    "./rbac": {
-      "default": "./src/rbac/index.ts"
-    },
-    "./*": {
-      "default": "./src/*.ts"
     }
   },
   "scripts": {
-    "seed:admin": "tsx --env-file=../../apps/server/.env src/seed-admin.ts"
+    "check-types": "tsc --noEmit"
   },
   "dependencies": {
-    "@better-auth/infra": "^0.2.8",
+    "@hesapport-api/auth": "*",
     "@hesapport-api/db": "*",
     "@hesapport-api/env": "*",
     "better-auth": "1.6.11",
-    "dotenv": "^17.2.2",
+    "drizzle-orm": "^0.45.1",
+    "express": "^5.1.0",
     "zod": "^4.1.13"
   },
   "devDependencies": {
     "@hesapport-api/config": "*",
-    "tsx": "^4.19.2",
+    "@types/express": "^5.0.1",
     "typescript": "^6"
   }
 }

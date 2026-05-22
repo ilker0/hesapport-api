@@ -30,6 +30,12 @@
     "db:studio": {
       "cache": false,
       "persistent": true
+    },
+    "seed:admin": {
+      "cache": false
+    },
+    "db:seed-rbac": {
+      "cache": false
     }
   }
 }

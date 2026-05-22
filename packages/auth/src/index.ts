@@ -1,8 +1,24 @@
 import { createDb } from "@hesapport-api/db";
 import * as schema from "@hesapport-api/db/schema/auth";
 import { env } from "@hesapport-api/env/server";
+import { dash } from "@better-auth/infra";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { admin } from "better-auth/plugins";
+
+export type { PermissionCheck } from "./rbac";
+export {
+  assignRoleToUserByName,
+  getUserPermissions,
+  getUserRoleNames,
+  setUserRolesByName,
+  syncUserRoleField,
+  userHasPermission,
+  userHasRole,
+} from "./rbac";
+
+/** @deprecated Use PermissionCheck from dynamic RBAC */
+export type Permission = import("./rbac").PermissionCheck;
 
 export function createAuth() {
   const db = createDb();
@@ -10,7 +26,6 @@ export function createAuth() {
   return betterAuth({
     database: drizzleAdapter(db, {
       provider: "pg",
-
       schema: schema,
     }),
     trustedOrigins: [env.CORS_ORIGIN],
@@ -26,7 +41,15 @@ export function createAuth() {
         httpOnly: true,
       },
     },
-    plugins: [],
+    plugins: [
+      admin({
+        defaultRole: "user",
+        adminRoles: ["admin"],
+      }),
+      dash({
+        apiKey: env.BETTER_AUTH_API_KEY,
+      }),
+    ],
   });
 }
 

@@ -1,0 +1,67 @@
+services:
+  # hesapport-api:
+  #   build:
+  #     context: .
+  #     dockerfile: apps/hesapport-api/Dockerfile
+  #   container_name: hesapport-api
+  #   environment:
+  #     NODE_ENV: production
+  #     PORT: 3000
+  #     DATABASE_HOST: postgres
+  #     DATABASE_PORT: 5432
+  #     DATABASE_NAME: hesapport
+  #     DATABASE_USER: hesapport
+  #     DATABASE_PASSWORD: hesapport
+  #     REDIS_HOST: redis
+  #     REDIS_PORT: 6379
+  #   ports:
+  #     - '3000:3000'
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #     redis:
+  #       condition: service_started
+  #   restart: unless-stopped
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: hesapport-postgres
+    environment:
+      POSTGRES_DB: hesapport
+      POSTGRES_USER: hesapport
+      POSTGRES_PASSWORD: hesapport
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  pgadmin:
+    image: dpage/pgadmin4:8.11
+    container_name: hesapport-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ilker46580@gmail.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
+      PGADMIN_CONFIG_ENHANCED_COOKIE_PROTECTION: 'True'
+    ports:
+      - '5050:80'
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: hesapport-redis
+    ports:
+      - '6379:6379'
+    command: ['redis-server', '--appendonly', 'yes']
+    volumes:
+      - redis-data:/data
+    restart: unless-stopped
+
+volumes:
+  postgres-data:
+  redis-data:

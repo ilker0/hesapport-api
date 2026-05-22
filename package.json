@@ -14,7 +14,9 @@
     "db:push": "turbo -F @hesapport-api/db db:push",
     "db:studio": "turbo -F @hesapport-api/db db:studio",
     "db:generate": "turbo -F @hesapport-api/db db:generate",
-    "db:migrate": "turbo -F @hesapport-api/db db:migrate"
+    "db:migrate": "turbo -F @hesapport-api/db db:migrate",
+    "auth:seed": "turbo -F @hesapport-api/auth seed:admin",
+    "db:seed-rbac": "turbo -F @hesapport-api/db db:seed-rbac"
   },
   "dependencies": {
     "@hesapport-api/env": "*",

@@ -10,13 +10,14 @@
     "start": "node dist/index.mjs"
   },
   "dependencies": {
+    "@hesapport-api/admin": "*",
     "@hesapport-api/api": "*",
     "@hesapport-api/auth": "*",
     "@hesapport-api/db": "*",
     "@hesapport-api/env": "*",
     "@hono/trpc-server": "^0.4.0",
     "@trpc/server": "^11.16.0",
-    "better-auth": "1.6.9",
+    "better-auth": "1.6.11",
     "cors": "^2.8.5",
     "dotenv": "^17.2.2",
     "express": "^5.1.0",

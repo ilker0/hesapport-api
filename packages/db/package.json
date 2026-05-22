@@ -5,6 +5,9 @@
     ".": {
       "default": "./src/index.ts"
     },
+    "./seed/rbac": {
+      "default": "./src/seed/rbac.ts"
+    },
     "./*": {
       "default": "./src/*.ts"
     }
@@ -13,7 +16,8 @@
     "db:push": "drizzle-kit push",
     "db:generate": "drizzle-kit generate",
     "db:studio": "drizzle-kit studio",
-    "db:migrate": "drizzle-kit migrate"
+    "db:migrate": "drizzle-kit migrate",
+    "db:seed-rbac": "tsx --env-file=../../apps/server/.env src/seed/run-rbac.ts"
   },
   "dependencies": {
     "@hesapport-api/env": "*",
@@ -26,6 +30,7 @@
     "@hesapport-api/config": "*",
     "@types/pg": "^8.16.0",
     "drizzle-kit": "^0.31.8",
+    "tsx": "^4.19.2",
     "typescript": "^6"
   }
 }
