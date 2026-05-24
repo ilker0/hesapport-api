@@ -38,6 +38,25 @@ export const member = pgTable(
   ],
 );
 
+export const organizationRole = pgTable(
+  "organization_role",
+  {
+    id: text("id").primaryKey(),
+    organizationId: text("organization_id")
+      .notNull()
+      .references(() => organization.id, { onDelete: "cascade" }),
+    role: text("role").notNull(),
+    permission: text("permission").notNull(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .$onUpdate(() => new Date()),
+  },
+  (table) => [
+    index("organization_role_organizationId_idx").on(table.organizationId),
+    index("organization_role_org_role_idx").on(table.organizationId, table.role),
+  ],
+);
+
 export const invitation = pgTable(
   "invitation",
   {
@@ -63,6 +82,14 @@ export const invitation = pgTable(
 export const organizationRelations = relations(organization, ({ many }) => ({
   members: many(member),
   invitations: many(invitation),
+  roles: many(organizationRole),
+}));
+
+export const organizationRoleRelations = relations(organizationRole, ({ one }) => ({
+  organization: one(organization, {
+    fields: [organizationRole.organizationId],
+    references: [organization.id],
+  }),
 }));
 
 export const memberRelations = relations(member, ({ one }) => ({

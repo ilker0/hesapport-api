@@ -5,19 +5,26 @@
     {
       "idx": 0,
       "version": "7",
+      "when": 1779700000000,
+      "tag": "0005_organization_role",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
       "when": 1779460000000,
       "tag": "0003_organization",
       "breakpoints": true
     },
     {
-      "idx": 1,
+      "idx": 2,
       "version": "7",
       "when": 1779461000000,
       "tag": "0004_drop_rbac",
       "breakpoints": true
     },
     {
-      "idx": 2,
+      "idx": 3,
       "version": "7",
       "when": 1779636647251,
       "tag": "0002_chemical_mongoose",

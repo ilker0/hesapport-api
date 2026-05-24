@@ -23,6 +23,8 @@ export {
   buildOrganizationName,
   buildOrganizationSlug,
   getPrimaryOrganizationId,
+  organizationAccessControl,
+  organizationRoles,
   provisionUserOrganization,
   userHasOrganization,
 } from "./organization";

@@ -8,12 +8,12 @@ import express from "express";
 
 const app = express();
 
-const corsOrigins = [env.CORS_ORIGIN, ...(env.ADMIN_CORS_ORIGIN ? [env.ADMIN_CORS_ORIGIN] : [])];
-
+const productionCorsOrigins = [env.CORS_ORIGIN, ...(env.ADMIN_CORS_ORIGIN ? [env.ADMIN_CORS_ORIGIN] : [])];
+const developmentCorsOrigins = ['http://localhost:5173', 'http://localhost:5174'];
 
 app.use(
   cors({
-    origin: corsOrigins,
+    origin: env.NODE_ENV === "production" ? productionCorsOrigins : developmentCorsOrigins,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true,

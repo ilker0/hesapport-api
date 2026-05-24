@@ -1,15 +1,17 @@
 import { z } from "zod";
 
+import { memberRoleSchema } from "./org-role.schema";
+
 export const inviteMemberSchema = z.object({
   email: z.string().email(),
-  role: z.enum(["member", "admin", "owner"]).default("member"),
+  role: memberRoleSchema.default("member"),
   organizationId: z.string().optional(),
   resend: z.boolean().optional(),
 });
 
 export const updateMemberRoleSchema = z.object({
   memberId: z.string().min(1),
-  role: z.enum(["member", "admin", "owner"]),
+  role: z.union([memberRoleSchema, z.array(memberRoleSchema)]),
   organizationId: z.string().optional(),
 });
 

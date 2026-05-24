@@ -1,14 +1,22 @@
 import { env } from "@hesapport-api/env/server";
 import { organization } from "better-auth/plugins";
 
+import { organizationAccessControl, organizationRoles } from "./access";
+
 export function createOrganizationPlugin() {
   const inviteBaseUrl = env.CORS_ORIGIN.replace(/\/$/, "");
 
   return organization({
+    ac: organizationAccessControl,
+    roles: organizationRoles,
     allowUserToCreateOrganization: true,
     organizationLimit: 1,
     creatorRole: "owner",
     membershipLimit: 100,
+    dynamicAccessControl: {
+      enabled: true,
+      maximumRolesPerOrganization: 50,
+    },
     async sendInvitationEmail(data) {
       const inviteLink = `${inviteBaseUrl}/accept-invitation/${data.id}`;
 

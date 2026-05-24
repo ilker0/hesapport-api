@@ -60,7 +60,7 @@ export async function inviteMember(
   req: Request,
   input: {
     email: string;
-    role: "member" | "admin" | "owner";
+    role: string | string[];
     organizationId?: string;
     resend?: boolean;
   },
@@ -87,7 +87,7 @@ export async function cancelInvitation(req: Request, invitationId: string) {
 
 export async function updateMemberRole(
   req: Request,
-  input: { memberId: string; role: "member" | "admin" | "owner"; organizationId?: string },
+  input: { memberId: string; role: string | string[]; organizationId?: string },
 ) {
   return auth.api.updateMemberRole({
     headers: sessionHeaders(req),
@@ -108,5 +108,74 @@ export async function removeMember(
 export async function getActiveMember(req: Request) {
   return auth.api.getActiveMember({
     headers: sessionHeaders(req),
+  });
+}
+
+export async function listOrgRoles(req: Request, organizationId?: string) {
+  return auth.api.listOrgRoles({
+    headers: sessionHeaders(req),
+    query: organizationId ? { organizationId } : {},
+  });
+}
+
+export async function getOrgRole(
+  req: Request,
+  query: { roleName?: string; roleId?: string; organizationId?: string },
+) {
+  return auth.api.getOrgRole({
+    headers: sessionHeaders(req),
+    query,
+  });
+}
+
+export async function createOrgRole(
+  req: Request,
+  input: {
+    role: string;
+    permission: Record<string, string[]>;
+    organizationId?: string;
+  },
+) {
+  return auth.api.createOrgRole({
+    headers: sessionHeaders(req),
+    body: input,
+  });
+}
+
+export async function updateOrgRole(
+  req: Request,
+  input: {
+    roleName?: string;
+    roleId?: string;
+    organizationId?: string;
+    data: {
+      roleName?: string;
+      permission?: Record<string, string[]>;
+    };
+  },
+) {
+  return auth.api.updateOrgRole({
+    headers: sessionHeaders(req),
+    body: input,
+  });
+}
+
+export async function deleteOrgRole(
+  req: Request,
+  input: { roleName?: string; roleId?: string; organizationId?: string },
+) {
+  return auth.api.deleteOrgRole({
+    headers: sessionHeaders(req),
+    body: input,
+  });
+}
+
+export async function hasOrganizationPermission(
+  req: Request,
+  input: { permissions: Record<string, string[]>; organizationId?: string },
+) {
+  return auth.api.hasPermission({
+    headers: sessionHeaders(req),
+    body: input,
   });
 }

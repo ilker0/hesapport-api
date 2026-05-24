@@ -6,6 +6,13 @@ import { z } from "zod";
 import { asyncHandler } from "../lib/async-handler";
 import { requireAuth } from "../middleware/require-auth";
 import {
+  createOrgRoleSchema,
+  deleteOrgRoleSchema,
+  getOrgRoleQuerySchema,
+  hasPermissionSchema,
+  updateOrgRoleSchema,
+} from "../schemas/org-role.schema";
+import {
   inviteMemberSchema,
   removeMemberSchema,
   setActiveOrganizationSchema,
@@ -121,5 +128,54 @@ organizationRouter.post(
         body: { invitationId },
       }),
     );
+  }),
+);
+
+organizationRouter.get(
+  "/roles",
+  asyncHandler(async (req, res) => {
+    const organizationId =
+      typeof req.query.organizationId === "string" ? req.query.organizationId : undefined;
+    res.json(await organizationService.listOrgRoles(req, organizationId));
+  }),
+);
+
+organizationRouter.get(
+  "/roles/detail",
+  asyncHandler(async (req, res) => {
+    const query = getOrgRoleQuerySchema.parse(req.query);
+    res.json(await organizationService.getOrgRole(req, query));
+  }),
+);
+
+organizationRouter.post(
+  "/roles",
+  asyncHandler(async (req, res) => {
+    const body = createOrgRoleSchema.parse(req.body);
+    res.status(201).json(await organizationService.createOrgRole(req, body));
+  }),
+);
+
+organizationRouter.patch(
+  "/roles",
+  asyncHandler(async (req, res) => {
+    const body = updateOrgRoleSchema.parse(req.body);
+    res.json(await organizationService.updateOrgRole(req, body));
+  }),
+);
+
+organizationRouter.post(
+  "/roles/delete",
+  asyncHandler(async (req, res) => {
+    const body = deleteOrgRoleSchema.parse(req.body);
+    res.json(await organizationService.deleteOrgRole(req, body));
+  }),
+);
+
+organizationRouter.post(
+  "/permissions/check",
+  asyncHandler(async (req, res) => {
+    const body = hasPermissionSchema.parse(req.body);
+    res.json(await organizationService.hasOrganizationPermission(req, body));
   }),
 );
