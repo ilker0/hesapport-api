@@ -33,9 +33,6 @@
     },
     "seed:admin": {
       "cache": false
-    },
-    "db:seed-rbac": {
-      "cache": false
     }
   }
 }

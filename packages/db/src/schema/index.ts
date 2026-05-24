@@ -1,4 +1,4 @@
 export * from "./auth";
-export * from "./rbac";
+export * from "./organization";
 export * from "./todo";
 export {};

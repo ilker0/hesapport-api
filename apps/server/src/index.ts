@@ -1,9 +1,7 @@
-import { createAdminRouter } from "@hesapport-api/admin";
-import { createContext } from "@hesapport-api/api/context";
-import { appRouter } from "@hesapport-api/api/routers/index";
+import { createAdminRouter } from "@hesapport-api/admin-api";
+import { createAppRouter, errorHandler } from "@hesapport-api/api";
 import { auth } from "@hesapport-api/auth";
 import { env } from "@hesapport-api/env/server";
-import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import { toNodeHandler } from "better-auth/node";
 import cors from "cors";
 import express from "express";
@@ -11,6 +9,7 @@ import express from "express";
 const app = express();
 
 const corsOrigins = [env.CORS_ORIGIN, ...(env.ADMIN_CORS_ORIGIN ? [env.ADMIN_CORS_ORIGIN] : [])];
+
 
 app.use(
   cors({
@@ -21,26 +20,30 @@ app.use(
   }),
 );
 
-app.use(express.json());
-
 app.all("/api/auth{/*path}", toNodeHandler(auth));
 
-app.use("/admin", createAdminRouter());
+app.use(express.json());
 
-app.use(
-  "/trpc",
-  createExpressMiddleware({
-    router: appRouter,
-    createContext,
-  }),
-);
+if (env.NODE_ENV !== "production") {
+  app.use((req, _res, next) => {
+    console.log(`[${req.method}] ${req.originalUrl}`);
+    next();
+  });
+}
+
+app.use("/api", createAppRouter());
+app.use("/admin", createAdminRouter());
 
 app.get("/", (_req, res) => {
   res.status(200).send("OK");
 });
 
-app.listen(3000, () => {
-  console.log("Server is running on http://localhost:3000");
-  console.log("Admin API: http://localhost:3000/admin");
-  console.log("Admin login: POST http://localhost:3000/admin/auth/login");
+app.use(errorHandler);
+
+const port = env.PORT;
+app.listen(port, () => {
+  console.log(`Server is running on http://localhost:${port}`);
+  console.log(`App API: http://localhost:${port}/api`);
+  console.log(`Admin API: http://localhost:${port}/admin`);
+  console.log(`Auth: http://localhost:${port}/api/auth`);
 });

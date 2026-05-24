@@ -5,15 +5,22 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1779456743765,
-      "tag": "0001_dynamic_rbac",
+      "when": 1779460000000,
+      "tag": "0003_organization",
       "breakpoints": true
     },
     {
       "idx": 1,
       "version": "7",
-      "when": 1779456800000,
-      "tag": "0002_seed_rbac_defaults",
+      "when": 1779461000000,
+      "tag": "0004_drop_rbac",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1779636647251,
+      "tag": "0002_chemical_mongoose",
       "breakpoints": true
     }
   ]

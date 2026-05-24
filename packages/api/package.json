@@ -14,12 +14,11 @@
     "@hesapport-api/auth": "*",
     "@hesapport-api/db": "*",
     "@hesapport-api/env": "*",
-    "@trpc/client": "^11.16.0",
-    "@trpc/server": "^11.16.0",
     "@types/pg": "^8.16.0",
     "better-auth": "1.6.11",
     "dotenv": "^17.2.2",
     "drizzle-orm": "^0.45.1",
+    "express": "^5.1.0",
     "zod": "^4.1.13"
   },
   "devDependencies": {
