@@ -15,12 +15,15 @@ export const env = createEnv({
     BETTER_AUTH_SECRET: z.string().min(32),
     BETTER_AUTH_URL: z.url(),
     APP_NAME: z.string().min(1).default("Hesapport"),
+    APP_ORIGIN: z.url(),
     /** Dev ortamında Resend ile gerçek gönderim (RESEND_API_KEY gerekir). */
     EMAIL_SEND_IN_DEV: z
       .enum(["true", "false"])
       .default("true")
       .transform((v) => v === "true"),
     CORS_ORIGIN: z.url(),
+    /** E-posta doğrulama sonrası yönlendirme (HTML sayfa). Varsayılan: {BETTER_AUTH_URL origin}/auth/verification/complete */
+    EMAIL_VERIFICATION_CALLBACK_URL: z.url().optional(),
     ADMIN_CORS_ORIGIN: z.url().optional(),
     /** Max accounts per browser/device (Better Auth multi-session plugin). */
     MULTI_SESSION_MAXIMUM_SESSIONS: z.coerce.number().int().positive().default(10),

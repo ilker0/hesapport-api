@@ -18,7 +18,7 @@ function formatInvitationRole(role: string | string[]): string {
 }
 
 export function createOrganizationPlugin() {
-  const inviteBaseUrl = env.CORS_ORIGIN.replace(/\/$/, "");
+  const inviteBaseUrl = env.APP_ORIGIN.replace(/\/$/, "");
 
   return organization({
     ac: organizationAccessControl,
@@ -62,7 +62,7 @@ export function createOrganizationPlugin() {
       },
     },
     async sendInvitationEmail(data) {
-      const inviteLink = `${inviteBaseUrl}/accept-invitation/${data.id}`;
+      const inviteLink = `${inviteBaseUrl}/auth/accept-invitation/${data.id}`;
 
       sendOrganizationInvitationEmail({
         to: data.email,

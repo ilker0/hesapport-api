@@ -6,6 +6,8 @@ import { toNodeHandler } from "better-auth/node";
 import cors from "cors";
 import express from "express";
 
+import { verificationPagesRouter } from "./routes/verification";
+
 const app = express();
 
 const productionCorsOrigins = [env.CORS_ORIGIN, ...(env.ADMIN_CORS_ORIGIN ? [env.ADMIN_CORS_ORIGIN] : [])];
@@ -21,6 +23,8 @@ app.use(
 );
 
 app.all("/api/auth{/*path}", toNodeHandler(auth));
+
+app.use("/auth/verification", verificationPagesRouter);
 
 app.use(express.json());
 

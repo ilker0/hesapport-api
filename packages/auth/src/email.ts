@@ -5,6 +5,7 @@ import {
   verifyEmailTemplate,
 } from "./email/templates";
 import { dispatchResendEmail } from "./email/resend";
+import { appendEmailVerificationCallback } from "./verification-callback";
 
 export { APP_NAME } from "./email/constants";
 export { isResendConfigured } from "./email/resend";
@@ -35,7 +36,10 @@ export function sendVerificationEmail(input: {
   verificationUrl: string;
   userName?: string | null;
 }) {
-  const message = verifyEmailTemplate(input);
+  const message = verifyEmailTemplate({
+    ...input,
+    verificationUrl: appendEmailVerificationCallback(input.verificationUrl),
+  });
   dispatchResendEmail({ to: input.to, ...message });
 }
 
