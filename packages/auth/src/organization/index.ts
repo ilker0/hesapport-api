@@ -1,5 +1,6 @@
 export {
   organizationAccessControl,
+  organizationCreatorRole,
   organizationRoles,
   organizationOwnerRole,
   organizationAdminRole,
@@ -12,4 +13,8 @@ export {
   userHasOrganization,
 } from "./provision";
 export { createOrganizationPlugin } from "./plugin";
+export {
+  resolveOrganizationMemberPermissions,
+  type OrganizationPermissionMap,
+} from "./permissions";
 export { organizationTeamsConfig, defaultOrganizationTeamName } from "./teams";

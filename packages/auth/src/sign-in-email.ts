@@ -19,7 +19,6 @@ export async function signInEmailWithResponse(
 }
 
 export function getAuthErrorMessage(payload: unknown): string {
-  console.log('payload', payload);
   if (payload && typeof payload === "object") {
     const record = payload as Record<string, unknown>;
     if (typeof record.message === "string") return record.message;

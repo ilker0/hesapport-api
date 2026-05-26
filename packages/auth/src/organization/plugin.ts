@@ -1,8 +1,21 @@
+import { db } from "@hesapport-api/db";
+import { member as memberTable } from "@hesapport-api/db/schema/organization";
 import { env } from "@hesapport-api/env/server";
 import { organization } from "better-auth/plugins";
+import { eq } from "drizzle-orm";
 
-import { organizationAccessControl, organizationRoles } from "./access";
+import {
+  organizationAccessControl,
+  organizationCreatorRole,
+  organizationRoles,
+} from "./access";
+import { sendOrganizationInvitationEmail } from "../email";
 import { defaultOrganizationTeamName, organizationTeamsConfig } from "./teams";
+
+function formatInvitationRole(role: string | string[]): string {
+  const roles = Array.isArray(role) ? role : role.split(",");
+  return roles.map((r) => r.trim()).filter(Boolean).join(", ");
+}
 
 export function createOrganizationPlugin() {
   const inviteBaseUrl = env.CORS_ORIGIN.replace(/\/$/, "");
@@ -12,7 +25,7 @@ export function createOrganizationPlugin() {
     roles: organizationRoles,
     allowUserToCreateOrganization: true,
     organizationLimit: 1,
-    creatorRole: "owner",
+    creatorRole: organizationCreatorRole,
     // membershipLimit: 100,
     requireEmailVerificationOnInvitation: true,
     dynamicAccessControl: {
@@ -21,6 +34,22 @@ export function createOrganizationPlugin() {
     },
     teams: organizationTeamsConfig,
     organizationHooks: {
+      beforeAddMember: async ({ member, organization }) => {
+        const [existing] = await db
+          .select({ id: memberTable.id })
+          .from(memberTable)
+          .where(eq(memberTable.organizationId, organization.id))
+          .limit(1);
+
+        if (!existing) {
+          return {
+            data: {
+              ...member,
+              role: organizationCreatorRole,
+            },
+          };
+        }
+      },
       beforeCreateTeam: async ({ team, organization }) => {
         if (team.name === organization.name) {
           return {
@@ -35,18 +64,14 @@ export function createOrganizationPlugin() {
     async sendInvitationEmail(data) {
       const inviteLink = `${inviteBaseUrl}/accept-invitation/${data.id}`;
 
-      if (env.NODE_ENV !== "production") {
-        console.error(
-          `[organization invitation] ${data.email} invited to "${data.organization.name}" by ${data.inviter.user.email}`,
-        );
-        console.error(`[organization invitation] link: ${inviteLink}`);
-        return;
-      }
-
-      // TODO: plug in your email provider (Resend, SES, etc.)
-      console.error(
-        `[organization invitation] send email to ${data.email}: ${inviteLink}`,
-      );
+      sendOrganizationInvitationEmail({
+        to: data.email,
+        inviteLink,
+        inviterName: data.inviter.user.name,
+        inviterEmail: data.inviter.user.email,
+        organizationName: data.organization.name,
+        role: formatInvitationRole(data.role),
+      });
     },
   });
 }

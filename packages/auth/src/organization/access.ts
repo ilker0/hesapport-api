@@ -16,6 +16,9 @@ const statement = {
 
 export const organizationAccessControl = createAccessControl(statement);
 
+/** Org kurucusunun üyelik rolü (kayıt / provision). */
+export const organizationCreatorRole = "owner" as const;
+
 export const organizationOwnerRole = organizationAccessControl.newRole(ownerAc.statements);
 export const organizationAdminRole = organizationAccessControl.newRole(adminAc.statements);
 export const organizationMemberRole = organizationAccessControl.newRole(memberAc.statements);

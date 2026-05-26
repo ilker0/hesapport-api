@@ -9,6 +9,7 @@ import {
   createOrgRoleSchema,
   deleteOrgRoleSchema,
   getOrgRoleQuerySchema,
+  getMemberPermissionsQuerySchema,
   hasPermissionSchema,
   updateOrgRoleSchema,
 } from "../schemas/org-role.schema";
@@ -170,6 +171,14 @@ organizationRouter.post(
   asyncHandler(async (req, res) => {
     const body = deleteOrgRoleSchema.parse(req.body);
     res.json(await organizationService.deleteOrgRole(req, body));
+  }),
+);
+
+organizationRouter.get(
+  "/permissions",
+  asyncHandler(async (req, res) => {
+    const query = getMemberPermissionsQuerySchema.parse(req.query);
+    res.json(await organizationService.getMemberPermissions(req, query.organizationId));
   }),
 );
 

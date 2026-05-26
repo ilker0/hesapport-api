@@ -7,8 +7,19 @@ export const env = createEnv({
     PORT: z.string().default("8080"),
     DATABASE_URL: z.string().min(1),
     BETTER_AUTH_API_KEY: z.string().min(1),
+    /** Better Auth Infrastructure (dash analytics). */
+    BETTER_AUTH_API_URL: z.url().optional(),
+    /** Resend — https://resend.com/docs/introduction */
+    RESEND_API_KEY: z.string().min(1).optional(),
+    RESEND_FROM: z.string().min(3).default("Hesapport <onboarding@resend.dev>"),
     BETTER_AUTH_SECRET: z.string().min(32),
     BETTER_AUTH_URL: z.url(),
+    APP_NAME: z.string().min(1).default("Hesapport"),
+    /** Dev ortamında Resend ile gerçek gönderim (RESEND_API_KEY gerekir). */
+    EMAIL_SEND_IN_DEV: z
+      .enum(["true", "false"])
+      .default("true")
+      .transform((v) => v === "true"),
     CORS_ORIGIN: z.url(),
     ADMIN_CORS_ORIGIN: z.url().optional(),
     /** Max accounts per browser/device (Better Auth multi-session plugin). */

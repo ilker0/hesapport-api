@@ -7,6 +7,11 @@ import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 
 import { createAdminPlugin } from "./admin";
+import {
+  sendChangeEmailConfirmation as dispatchChangeEmailConfirmation,
+  sendPasswordResetEmail as dispatchPasswordResetEmail,
+  sendVerificationEmail as dispatchVerificationEmail,
+} from "./email";
 import { createMultiSessionPlugin } from "./multi-session";
 import {
   createOrganizationPlugin,
@@ -28,10 +33,13 @@ export {
   buildOrganizationSlug,
   getPrimaryOrganizationId,
   organizationAccessControl,
+  organizationCreatorRole,
   organizationRoles,
   provisionUserOrganization,
+  resolveOrganizationMemberPermissions,
   userHasOrganization,
 } from "./organization";
+export type { OrganizationPermissionMap } from "./organization";
 
 const isProduction = env.NODE_ENV === "production";
 
@@ -59,11 +67,43 @@ export function createAuth() {
     emailAndPassword: {
       enabled: true,
       autoSignIn: false,
+      requireEmailVerification: true,
+      async sendResetPassword({ user, url }) {
+        dispatchPasswordResetEmail({
+          to: user.email,
+          resetLink: url,
+          userName: user.name,
+        });
+      },
+    },
+    emailVerification: {
+      sendOnSignUp: true,
+      sendOnSignIn: true,
+      autoSignInAfterVerification: false,
+      async sendVerificationEmail({ user, url }) {
+        dispatchVerificationEmail({
+          to: user.email,
+          verificationUrl: url,
+          userName: user.name,
+        });
+      },
     },
     secret: env.BETTER_AUTH_SECRET,
     baseURL: env.BETTER_AUTH_URL,
     user: {
       additionalFields: authUserAdditionalFields,
+      changeEmail: {
+        enabled: true,
+        async sendChangeEmailConfirmation({ user, newEmail, url }) {
+          dispatchChangeEmailConfirmation({
+            to: newEmail,
+            confirmationLink: url,
+            newEmail,
+            currentEmail: user.email,
+            userName: user.name,
+          });
+        },
+      },
     },
     advanced: {
       defaultCookieAttributes: {

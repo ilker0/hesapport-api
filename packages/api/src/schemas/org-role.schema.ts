@@ -55,3 +55,7 @@ export const hasPermissionSchema = z.object({
   permissions: orgPermissionsSchema,
   organizationId: z.string().optional(),
 });
+
+export const getMemberPermissionsQuerySchema = z.object({
+  organizationId: z.string().optional(),
+});

@@ -1,7 +1,8 @@
 import { db } from "@hesapport-api/db";
 import { member } from "@hesapport-api/db/schema/organization";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 
+import { organizationCreatorRole } from "./access";
 import { buildOrganizationName, buildOrganizationSlug } from "./slug";
 
 export type AuthWithOrganization = {
@@ -45,11 +46,20 @@ export async function provisionUserOrganization(
     return;
   }
 
-  await authInstance.api.createOrganization({
+  const organization = await authInstance.api.createOrganization({
     body: {
       name: buildOrganizationName(user),
       slug: buildOrganizationSlug(user),
       userId: user.id,
     },
   });
+
+  if (organization?.id) {
+    await db
+      .update(member)
+      .set({ role: organizationCreatorRole })
+      .where(
+        and(eq(member.userId, user.id), eq(member.organizationId, organization.id)),
+      );
+  }
 }

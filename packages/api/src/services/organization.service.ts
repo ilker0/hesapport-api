@@ -1,6 +1,8 @@
-import { auth } from "@hesapport-api/auth";
+import { auth, resolveOrganizationMemberPermissions } from "@hesapport-api/auth";
 import { fromNodeHeaders } from "better-auth/node";
 import type { Request } from "express";
+
+import { HttpError } from "../lib/http-error";
 
 function sessionHeaders(req: Request) {
   return fromNodeHeaders(req.headers);
@@ -179,6 +181,33 @@ export async function hasOrganizationPermission(
     headers: sessionHeaders(req),
     body: input,
   });
+}
+
+/** GET /organization/permissions — current member's merged permission map for the UI. */
+export async function getMemberPermissions(req: Request, organizationId?: string) {
+  const { role } = await auth.api.getActiveMemberRole({
+    headers: sessionHeaders(req),
+    query: organizationId ? { organizationId } : {},
+  });
+
+  const resolvedOrganizationId =
+    organizationId ?? req.session?.session.activeOrganizationId ?? undefined;
+
+  if (!resolvedOrganizationId) {
+    throw new HttpError(400, "No active organization");
+  }
+
+  const { roles, permissions } = await resolveOrganizationMemberPermissions(
+    resolvedOrganizationId,
+    role,
+  );
+
+  return {
+    organizationId: resolvedOrganizationId,
+    role,
+    roles,
+    permissions,
+  };
 }
 
 /** GET /organization/list-teams */
