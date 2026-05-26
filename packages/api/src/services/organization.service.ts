@@ -62,6 +62,7 @@ export async function inviteMember(
     email: string;
     role: string | string[];
     organizationId?: string;
+    teamId?: string;
     resend?: boolean;
   },
 ) {
@@ -175,6 +176,96 @@ export async function hasOrganizationPermission(
   input: { permissions: Record<string, string[]>; organizationId?: string },
 ) {
   return auth.api.hasPermission({
+    headers: sessionHeaders(req),
+    body: input,
+  });
+}
+
+/** GET /organization/list-teams */
+export async function listTeams(req: Request, organizationId?: string) {
+  return auth.api.listOrganizationTeams({
+    headers: sessionHeaders(req),
+    query: organizationId ? { organizationId } : {},
+  });
+}
+
+/** GET /organization/list-user-teams */
+export async function listUserTeams(req: Request) {
+  return auth.api.listUserTeams({
+    headers: sessionHeaders(req),
+  });
+}
+
+/** POST /organization/create-team */
+export async function createTeam(
+  req: Request,
+  input: { name: string; organizationId?: string },
+) {
+  return auth.api.createTeam({
+    headers: sessionHeaders(req),
+    body: input,
+  });
+}
+
+/** POST /organization/update-team */
+export async function updateTeam(
+  req: Request,
+  input: {
+    teamId: string;
+    organizationId?: string;
+    data: { name?: string };
+  },
+) {
+  return auth.api.updateTeam({
+    headers: sessionHeaders(req),
+    body: input,
+  });
+}
+
+/** POST /organization/remove-team */
+export async function removeTeam(
+  req: Request,
+  input: { teamId: string; organizationId?: string },
+) {
+  return auth.api.removeTeam({
+    headers: sessionHeaders(req),
+    body: input,
+  });
+}
+
+/** POST /organization/set-active-team */
+export async function setActiveTeam(req: Request, teamId: string | null) {
+  return auth.api.setActiveTeam({
+    headers: sessionHeaders(req),
+    body: { teamId },
+  });
+}
+
+/** POST /organization/list-team-members */
+export async function listTeamMembers(req: Request, teamId?: string) {
+  return auth.api.listTeamMembers({
+    headers: sessionHeaders(req),
+    query: teamId ? { teamId } : {},
+  });
+}
+
+/** POST /organization/add-team-member */
+export async function addTeamMember(
+  req: Request,
+  input: { teamId: string; userId: string },
+) {
+  return auth.api.addTeamMember({
+    headers: sessionHeaders(req),
+    body: input,
+  });
+}
+
+/** POST /organization/remove-team-member */
+export async function removeTeamMember(
+  req: Request,
+  input: { teamId: string; userId: string },
+) {
+  return auth.api.removeTeamMember({
     headers: sessionHeaders(req),
     body: input,
   });

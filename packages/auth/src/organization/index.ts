@@ -12,3 +12,4 @@ export {
   userHasOrganization,
 } from "./provision";
 export { createOrganizationPlugin } from "./plugin";
+export { organizationTeamsConfig, defaultOrganizationTeamName } from "./teams";

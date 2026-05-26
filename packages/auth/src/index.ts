@@ -7,16 +7,20 @@ import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 
 import { createAdminPlugin } from "./admin";
+import { createMultiSessionPlugin } from "./multi-session";
 import {
   createOrganizationPlugin,
   getPrimaryOrganizationId,
   provisionUserOrganization,
 } from "./organization";
+import { authUserAdditionalFields } from "./user-fields";
 
 const schema = { ...authSchema, ...organizationSchema };
 
 export { userIsAppAdmin, parseUserRoles } from "./app-admin";
 export { createAdminPlugin, seedPlatformAdmin, adminRole, userRole } from "./admin";
+export { createMultiSessionPlugin } from "./multi-session";
+export { authUserAdditionalFields } from "./user-fields";
 export { ensureCredentialPassword } from "./ensure-credential";
 export { getAuthErrorMessage, signInEmailWithResponse } from "./sign-in-email";
 export {
@@ -36,6 +40,10 @@ function getTrustedOrigins() {
   if (env.ADMIN_CORS_ORIGIN) {
     origins.add(env.ADMIN_CORS_ORIGIN);
   }
+  if (env.NODE_ENV !== "production") {
+    origins.add("http://localhost:5173");
+    origins.add("http://localhost:5174");
+  }
   return [...origins];
 }
 
@@ -53,6 +61,9 @@ export function createAuth() {
     },
     secret: env.BETTER_AUTH_SECRET,
     baseURL: env.BETTER_AUTH_URL,
+    user: {
+      additionalFields: authUserAdditionalFields,
+    },
     advanced: {
       defaultCookieAttributes: {
         sameSite: isProduction ? "none" : "lax",
@@ -85,6 +96,7 @@ export function createAuth() {
     plugins: [
       createAdminPlugin(),
       createOrganizationPlugin(),
+      createMultiSessionPlugin(),
       dash({
         apiKey: env.BETTER_AUTH_API_KEY,
       }),

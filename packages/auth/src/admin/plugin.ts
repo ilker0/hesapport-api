@@ -14,7 +14,7 @@ export function createAdminPlugin() {
       user: userRole,
     },
     defaultRole: "user",
-    adminRoles: ["admin"],
+    // adminRoles: ["admin"],
     impersonationSessionDuration: 60 * 60,
   });
 }

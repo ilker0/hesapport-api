@@ -2,6 +2,7 @@ import { env } from "@hesapport-api/env/server";
 import { organization } from "better-auth/plugins";
 
 import { organizationAccessControl, organizationRoles } from "./access";
+import { organizationTeamsConfig } from "./teams";
 
 export function createOrganizationPlugin() {
   const inviteBaseUrl = env.CORS_ORIGIN.replace(/\/$/, "");
@@ -12,11 +13,13 @@ export function createOrganizationPlugin() {
     allowUserToCreateOrganization: true,
     organizationLimit: 1,
     creatorRole: "owner",
-    membershipLimit: 100,
+    // membershipLimit: 100,
+    requireEmailVerificationOnInvitation: true,
     dynamicAccessControl: {
       enabled: true,
-      maximumRolesPerOrganization: 50,
+      // maximumRolesPerOrganization: 50,
     },
+    teams: organizationTeamsConfig,
     async sendInvitationEmail(data) {
       const inviteLink = `${inviteBaseUrl}/accept-invitation/${data.id}`;
 

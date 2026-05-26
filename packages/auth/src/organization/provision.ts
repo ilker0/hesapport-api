@@ -3,6 +3,7 @@ import { member } from "@hesapport-api/db/schema/organization";
 import { eq } from "drizzle-orm";
 
 import { buildOrganizationName, buildOrganizationSlug } from "./slug";
+import { defaultOrganizationTeamName, organizationTeamsConfig } from "./teams";
 
 export type AuthWithOrganization = {
   api: {
@@ -12,8 +13,21 @@ export type AuthWithOrganization = {
         slug: string;
         userId: string;
       };
+    }) => Promise<{ id: string } | null>;
+    createTeam: (input: {
+      body: {
+        name: string;
+        organizationId: string;
+      };
     }) => Promise<unknown>;
   };
+};
+
+export type ProvisionUser = {
+  id: string;
+  name: string;
+  email: string;
+  businessName?: string | null;
 };
 
 export async function getPrimaryOrganizationId(userId: string): Promise<string | null> {
@@ -32,17 +46,26 @@ export async function userHasOrganization(userId: string): Promise<boolean> {
 
 export async function provisionUserOrganization(
   authInstance: AuthWithOrganization,
-  user: { id: string; name: string; email: string },
+  user: ProvisionUser,
 ): Promise<void> {
   if (await userHasOrganization(user.id)) {
     return;
   }
 
-  await authInstance.api.createOrganization({
+  const organization = await authInstance.api.createOrganization({
     body: {
       name: buildOrganizationName(user),
       slug: buildOrganizationSlug(user),
       userId: user.id,
     },
   });
+
+  if (organizationTeamsConfig.enabled && organization?.id) {
+    await authInstance.api.createTeam({
+      body: {
+        name: defaultOrganizationTeamName,
+        organizationId: organization.id,
+      },
+    });
+  }
 }

@@ -20,6 +20,7 @@ import {
   updateOrganizationSchema,
 } from "../schemas/organization.schema";
 import * as organizationService from "../services/organization.service";
+import { teamsRouter } from "./teams";
 
 export const organizationRouter = Router();
 
@@ -179,3 +180,5 @@ organizationRouter.post(
     res.json(await organizationService.hasOrganizationPermission(req, body));
   }),
 );
+
+organizationRouter.use("/teams", teamsRouter);

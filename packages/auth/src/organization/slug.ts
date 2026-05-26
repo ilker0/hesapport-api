@@ -12,7 +12,13 @@ export function buildOrganizationSlug(user: { id: string; name: string; email: s
   return `${base}-${user.id.slice(0, 8)}`;
 }
 
-export function buildOrganizationName(user: { name: string }): string {
+export function buildOrganizationName(user: {
+  name: string;
+  businessName?: string | null;
+}): string {
+  const business = user.businessName?.trim();
+  if (business) return business;
+
   const trimmed = user.name.trim();
   return trimmed ? `${trimmed}'s Organization` : "My Organization";
 }

@@ -6,6 +6,7 @@ export const inviteMemberSchema = z.object({
   email: z.string().email(),
   role: memberRoleSchema.default("member"),
   organizationId: z.string().optional(),
+  teamId: z.string().optional(),
   resend: z.boolean().optional(),
 });
 
