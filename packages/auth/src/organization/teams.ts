@@ -9,5 +9,6 @@ export const organizationTeamsConfig = {
   allowRemovingAllTeams: env.ORG_ALLOW_REMOVING_ALL_TEAMS,
 } as const;
 
-/** Default team created when a user is provisioned with a new organization. */
-export const defaultOrganizationTeamName = env.ORG_DEFAULT_TEAM_NAME;
+/** Varsayılan takım — yeni üye kaydında org ile birlikte oluşturulur. */
+export const defaultOrganizationTeamName =
+  env.ORG_DEFAULT_TEAM_NAME.trim() || "Ana Şube";

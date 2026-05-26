@@ -58,6 +58,7 @@ export function createAuth() {
     trustedOrigins: getTrustedOrigins(),
     emailAndPassword: {
       enabled: true,
+      autoSignIn: false,
     },
     secret: env.BETTER_AUTH_SECRET,
     baseURL: env.BETTER_AUTH_URL,

@@ -18,7 +18,7 @@ export const env = createEnv({
       .enum(["true", "false"])
       .default("false")
       .transform((v) => v === "true"),
-    ORG_DEFAULT_TEAM_NAME: z.string().min(1).default("General"),
+    ORG_DEFAULT_TEAM_NAME: z.string().min(1).default("Ana Şube"),
     NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
   },
   runtimeEnv: process.env,
