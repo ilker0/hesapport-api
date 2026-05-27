@@ -2,7 +2,7 @@ import { createDb } from "@hesapport-api/db";
 import * as authSchema from "@hesapport-api/db/schema/auth";
 import * as organizationSchema from "@hesapport-api/db/schema/organization";
 import { env } from "@hesapport-api/env/server";
-import { dash } from "@better-auth/infra";
+// import { dash } from "@better-auth/infra";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 
@@ -19,6 +19,7 @@ import {
   provisionUserOrganization,
 } from "./organization";
 import { authUserAdditionalFields } from "./user-fields";
+import { dash } from "@better-auth/infra";
 
 const schema = { ...authSchema, ...organizationSchema };
 

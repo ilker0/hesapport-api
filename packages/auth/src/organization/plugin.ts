@@ -26,6 +26,8 @@ export function createOrganizationPlugin() {
     allowUserToCreateOrganization: true,
     organizationLimit: 1,
     creatorRole: organizationCreatorRole,
+    keepCurrentActiveOrganization: true,
+
     // membershipLimit: 100,
     requireEmailVerificationOnInvitation: true,
     dynamicAccessControl: {
