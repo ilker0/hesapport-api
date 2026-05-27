@@ -3,7 +3,8 @@ import { createOrgUser } from "@hesapport-api/auth";
 export async function adminCreateOrgUser(input: {
   organizationId: string;
   branchId: string;
-  roleId: string;
+  roleIds: string[];
+  email: string;
   username: string;
   password: string;
   displayName: string;

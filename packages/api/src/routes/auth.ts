@@ -10,6 +10,7 @@ import { Router } from "express";
 
 import { asyncHandler } from "../lib/async-handler";
 import { withAuth } from "../lib/auth-handler";
+import { buildRequestMeta } from "../lib/request-meta";
 import {
   emailOnlySchema,
   orgUserSignInSchema,
@@ -33,7 +34,7 @@ authRouter.post(
   "/owner/sign-in",
   asyncHandler(async (req, res) => {
     const body = ownerSignInSchema.parse(req.body);
-    const result = await withAuth(() => ownerSignIn(body));
+    const result = await withAuth(() => ownerSignIn(body, buildRequestMeta(req)));
     res.json({
       accessToken: result.accessToken,
       tokenType: "Bearer",
@@ -79,7 +80,7 @@ authRouter.post(
   "/org/sign-in",
   asyncHandler(async (req, res) => {
     const body = orgUserSignInSchema.parse(req.body);
-    const result = await withAuth(() => orgUserSignIn(body));
+    const result = await withAuth(() => orgUserSignIn(body, buildRequestMeta(req)));
     res.json({
       accessToken: result.accessToken,
       tokenType: "Bearer",
@@ -88,7 +89,7 @@ authRouter.post(
         username: result.user.username,
         displayName: result.user.displayName,
         branchId: result.user.branchId,
-        roleId: result.user.roleId,
+        roleIds: result.session.roleIds,
       },
       organization: {
         id: result.organization.id,

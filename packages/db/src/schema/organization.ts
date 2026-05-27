@@ -76,9 +76,7 @@ export const orgUser = pgTable(
     branchId: text("branch_id")
       .notNull()
       .references(() => branch.id, { onDelete: "restrict" }),
-    roleId: text("role_id")
-      .notNull()
-      .references(() => organizationRole.id, { onDelete: "restrict" }),
+    email: text("email").notNull(),
     username: text("username").notNull(),
     passwordHash: text("password_hash").notNull(),
     displayName: text("display_name").notNull(),
@@ -90,9 +88,29 @@ export const orgUser = pgTable(
       .notNull(),
   },
   (table) => [
+    uniqueIndex("org_user_org_email_uidx").on(table.organizationId, table.email),
     uniqueIndex("org_user_org_username_uidx").on(table.organizationId, table.username),
     index("org_user_organization_id_idx").on(table.organizationId),
     index("org_user_branch_id_idx").on(table.branchId),
+  ],
+);
+
+export const orgUserRole = pgTable(
+  "org_user_role",
+  {
+    id: text("id").primaryKey(),
+    orgUserId: text("org_user_id")
+      .notNull()
+      .references(() => orgUser.id, { onDelete: "cascade" }),
+    roleId: text("role_id")
+      .notNull()
+      .references(() => organizationRole.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [
+    uniqueIndex("org_user_role_user_role_uidx").on(table.orgUserId, table.roleId),
+    index("org_user_role_user_idx").on(table.orgUserId),
+    index("org_user_role_role_idx").on(table.roleId),
   ],
 );
 
@@ -119,10 +137,10 @@ export const organizationRoleRelations = relations(organizationRole, ({ one, man
     fields: [organizationRole.organizationId],
     references: [organization.id],
   }),
-  orgUsers: many(orgUser),
+  orgUserRoles: many(orgUserRole),
 }));
 
-export const orgUserRelations = relations(orgUser, ({ one }) => ({
+export const orgUserRelations = relations(orgUser, ({ one, many }) => ({
   organization: one(organization, {
     fields: [orgUser.organizationId],
     references: [organization.id],
@@ -131,8 +149,16 @@ export const orgUserRelations = relations(orgUser, ({ one }) => ({
     fields: [orgUser.branchId],
     references: [branch.id],
   }),
+  roles: many(orgUserRole),
+}));
+
+export const orgUserRoleRelations = relations(orgUserRole, ({ one }) => ({
+  orgUser: one(orgUser, {
+    fields: [orgUserRole.orgUserId],
+    references: [orgUser.id],
+  }),
   role: one(organizationRole, {
-    fields: [orgUser.roleId],
+    fields: [orgUserRole.roleId],
     references: [organizationRole.id],
   }),
 }));

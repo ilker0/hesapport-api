@@ -1,6 +1,6 @@
 import { db } from "@hesapport-api/db";
 import { organizationRole } from "@hesapport-api/db/schema/organization";
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 
 import { AuthErrors } from "../lib/errors";
 import { newId } from "../lib/id";
@@ -34,12 +34,39 @@ export async function getRoleByName(organizationId: string, name: string) {
 
 export async function checkOrgUserPermission(input: {
   organizationId: string;
-  roleId: string;
+  roleIds: string[];
   resource: string;
   action: string;
 }) {
-  const permissions = await getRolePermissions(input.organizationId, input.roleId);
+  const permissions = await getMergedRolePermissions(input.organizationId, input.roleIds);
   return hasPermission(permissions, input.resource, input.action);
+}
+
+export async function getMergedRolePermissions(
+  organizationId: string,
+  roleIds: string[],
+): Promise<PermissionMap> {
+  if (roleIds.length === 0) {
+    return {};
+  }
+
+  const rows = await db
+    .select()
+    .from(organizationRole)
+    .where(
+      and(
+        eq(organizationRole.organizationId, organizationId),
+        inArray(organizationRole.id, roleIds),
+      ),
+    );
+
+  const merged: PermissionMap = {};
+  for (const row of rows) {
+    for (const [resource, actions] of Object.entries(row.permissions)) {
+      merged[resource] = [...new Set([...(merged[resource] ?? []), ...actions])];
+    }
+  }
+  return merged;
 }
 
 export async function listOrganizationRoles(organizationId: string) {

@@ -5,7 +5,7 @@ import { requireAuth } from "../middleware/require-auth";
 import { asyncHandler } from "../lib/async-handler";
 import { authRouter } from "./auth";
 import { organizationRouter } from "./organization";
-import { todoRouter } from "./todo";
+import { sessionsRouter } from "./sessions";
 
 export function createAppRouter() {
   const router = Router();
@@ -30,7 +30,7 @@ export function createAppRouter() {
   );
 
   router.use("/organization", organizationRouter);
-  router.use("/todos", todoRouter);
+  router.use("/sessions", sessionsRouter);
 
   return router;
 }

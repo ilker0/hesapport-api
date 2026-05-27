@@ -7,8 +7,10 @@ import { newId } from "../lib/id";
 import { hashPassword, verifyPassword } from "../lib/password";
 import { signAccessToken } from "../lib/jwt";
 import { sendPasswordResetEmail, sendVerifyEmail } from "../email";
+import { buildSessionExpiresAt, createAuthSession } from "./session.service";
 import { createAuthToken, consumeAuthToken } from "./token.service";
 import type { AdminSession } from "../types";
+import { env } from "@hesapport-api/env/server";
 
 async function getByEmail(email: string) {
   const normalized = email.trim().toLowerCase();
@@ -25,12 +27,16 @@ function toSession(row: typeof adminUser.$inferSelect): AdminSession {
   return {
     type: "admin",
     sub: row.id,
+    sessionId: "",
     email: row.email,
     name: row.name,
   };
 }
 
-export async function adminSignIn(input: { email: string; password: string }) {
+export async function adminSignIn(
+  input: { email: string; password: string },
+  meta?: { ipAddress?: string; userAgent?: string },
+) {
   const row = await getByEmail(input.email);
   if (!row || !(await verifyPassword(input.password, row.passwordHash))) {
     throw AuthErrors.invalidCredentials();
@@ -46,9 +52,17 @@ export async function adminSignIn(input: { email: string; password: string }) {
     throw AuthErrors.emailNotVerified();
   }
 
-  const session = toSession(row);
+  const baseSession = toSession(row);
+  const persisted = await createAuthSession({
+    principalType: "admin",
+    principalId: row.id,
+    ipAddress: meta?.ipAddress,
+    userAgent: meta?.userAgent,
+    expiresAt: buildSessionExpiresAt(env.JWT_EXPIRES_IN),
+  });
+  const session = { ...baseSession, sessionId: persisted.id };
   const accessToken = await signAccessToken(session);
-  return { accessToken, user: row, session };
+  return { accessToken, user: row, session, persistedSession: persisted };
 }
 
 export async function adminVerifyEmail(rawToken: string) {
@@ -63,7 +77,13 @@ export async function adminVerifyEmail(rawToken: string) {
     .where(eq(adminUser.id, token.principalId));
   const row = await getById(token.principalId);
   if (!row) throw AuthErrors.notFound("Admin");
-  const session = toSession(row);
+  const baseSession = toSession(row);
+  const persisted = await createAuthSession({
+    principalType: "admin",
+    principalId: row.id,
+    expiresAt: buildSessionExpiresAt(env.JWT_EXPIRES_IN),
+  });
+  const session = { ...baseSession, sessionId: persisted.id };
   const accessToken = await signAccessToken(session);
   return { accessToken, user: row };
 }

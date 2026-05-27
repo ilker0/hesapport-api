@@ -3,6 +3,7 @@ import { z } from "zod";
 export const orgPermissionsSchema = z.record(z.string(), z.array(z.string()));
 
 export const createOrgUserSchema = z.object({
+  email: z.string().email(),
   username: z
     .string()
     .min(2)
@@ -10,14 +11,13 @@ export const createOrgUserSchema = z.object({
     .regex(/^[a-zA-Z0-9._-]+$/, "Invalid username"),
   password: z.string().min(8),
   displayName: z.string().min(1),
-  roleId: z.string().min(1),
+  roleIds: z.array(z.string().min(1)).min(1),
   branchId: z.string().min(1),
-  notifyEmail: z.string().email().optional(),
 });
 
 export const updateOrgUserSchema = z.object({
   displayName: z.string().min(1).optional(),
-  roleId: z.string().min(1).optional(),
+  roleIds: z.array(z.string().min(1)).min(1).optional(),
   branchId: z.string().min(1).optional(),
   isActive: z.boolean().optional(),
   password: z.string().min(8).optional(),

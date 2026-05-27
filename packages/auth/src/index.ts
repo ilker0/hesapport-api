@@ -28,5 +28,6 @@ export * from "./services/permission.service";
 export * from "./services/branch.service";
 export * from "./services/organization-setup.service";
 export * from "./services/token.service";
+export * from "./services/session.service";
 
-export { sendVerifyEmail, sendPasswordResetEmail, isResendConfigured, APP_NAME } from "./email";
+export { sendVerificationEmail, sendPasswordResetEmail, isResendConfigured, APP_NAME } from "./email";

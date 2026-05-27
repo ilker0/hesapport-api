@@ -34,15 +34,20 @@ export function passwordResetTemplate(input: {
 export function orgUserWelcomeTemplate(input: {
   displayName: string;
   organizationName: string;
+  email: string;
   username: string;
+  password: string;
   loginUrl: string;
 }) {
   const html = emailLayout(`
     <p>Merhaba ${escapeHtml(input.displayName)},</p>
     <p><strong>${escapeHtml(input.organizationName)}</strong> organizasyonuna hesabınız oluşturuldu.</p>
+    <p>E-posta adresiniz: <strong>${escapeHtml(input.email)}</strong></p>
     <p>Kullanıcı adınız: <strong>${escapeHtml(input.username)}</strong></p>
+    <p>Şifreniz: <strong>${escapeHtml(input.password)}</strong></p>
     ${emailButton(input.loginUrl, "Giriş yap")}
+    ${emailMuted("Güvenlik için giriş yaptıktan sonra şifrenizi değiştirin.")}
   `);
-  const text = `Hesabınız oluşturuldu. Kullanıcı adı: ${input.username}. Giriş: ${input.loginUrl}`;
+  const text = `Hesabınız oluşturuldu. E-posta: ${input.email}. Kullanıcı adı: ${input.username}. Şifre: ${input.password}. Giriş: ${input.loginUrl}`;
   return { subject: `${APP_NAME} — Hesabınız hazır`, html, text };
 }

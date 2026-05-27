@@ -11,7 +11,8 @@ export const createOwnerSchema = z.object({
 export const createOrgUserAdminSchema = z.object({
   organizationId: z.string().min(1),
   branchId: z.string().min(1),
-  roleId: z.string().min(1),
+  roleIds: z.array(z.string().min(1)).min(1),
+  email: z.string().email(),
   username: z
     .string()
     .min(2)

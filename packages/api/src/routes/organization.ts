@@ -7,7 +7,7 @@ import {
   deleteOrgUser,
   deleteOrganizationRole,
   getOwnerProfile,
-  getRolePermissions,
+  getMergedRolePermissions,
   listBranches,
   listOrgUsers,
   listOrganizationRoles,
@@ -56,7 +56,7 @@ organizationRouter.get(
     res.json({
       organizationId: orgUser.organizationId,
       branchId: orgUser.branchId,
-      roleId: orgUser.roleId,
+      roleIds: orgUser.roleIds,
     });
   }),
 );
@@ -72,8 +72,8 @@ organizationRouter.get(
     }
 
     const orgUser = assertOrgUserSession(session);
-    const permissions = await getRolePermissions(orgUser.organizationId, orgUser.roleId);
-    res.json({ permissions, roleId: orgUser.roleId });
+    const permissions = await getMergedRolePermissions(orgUser.organizationId, orgUser.roleIds);
+    res.json({ permissions, roleIds: orgUser.roleIds });
   }),
 );
 
@@ -175,7 +175,7 @@ organizationRouter.get(
     if (session.type === "org_user") {
       const allowed = await checkOrgUserPermission({
         organizationId,
-        roleId: session.roleId,
+        roleIds: session.roleIds,
         resource: "org_user",
         action: "read",
       });

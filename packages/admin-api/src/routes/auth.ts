@@ -7,6 +7,7 @@ import {
 } from "@hesapport-api/auth";
 import { withAuth } from "@hesapport-api/api/lib/auth-handler";
 import { asyncHandler } from "@hesapport-api/api/lib/async-handler";
+import { buildRequestMeta } from "@hesapport-api/api/lib/request-meta";
 import { Router } from "express";
 
 import { attachSession } from "../middleware/session";
@@ -24,7 +25,7 @@ adminAuthRouter.post(
   "/sign-in",
   asyncHandler(async (req, res) => {
     const body = adminSignInSchema.parse(req.body);
-    const result = await withAuth(() => adminSignIn(body));
+    const result = await withAuth(() => adminSignIn(body, buildRequestMeta(req)));
     res.json({
       accessToken: result.accessToken,
       tokenType: "Bearer",

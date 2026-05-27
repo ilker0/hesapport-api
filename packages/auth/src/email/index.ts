@@ -16,7 +16,7 @@ function passwordResetUrl(rawToken: string, principal: "admin" | "owner") {
   return `${base}/auth/reset-password?token=${encodeURIComponent(rawToken)}&type=${principal}`;
 }
 
-export function sendVerifyEmail(input: {
+export function sendVerificationEmail(input: {
   to: string;
   userName?: string | null;
   rawToken: string;
@@ -28,6 +28,8 @@ export function sendVerifyEmail(input: {
   });
   dispatchResendEmail({ to: input.to, ...message });
 }
+
+export const sendVerifyEmail = sendVerificationEmail;
 
 export function sendPasswordResetEmail(input: {
   to: string;
@@ -43,20 +45,22 @@ export function sendPasswordResetEmail(input: {
 }
 
 export function sendOrgUserWelcomeEmail(input: {
-  to?: string;
+  to: string;
   displayName: string;
   organizationName: string;
+  email: string;
   username: string;
+  password: string;
   organizationSlug: string;
 }) {
   const loginUrl = `${env.APP_ORIGIN.replace(/\/$/, "")}/login/${input.organizationSlug}`;
   const message = orgUserWelcomeTemplate({
     displayName: input.displayName,
     organizationName: input.organizationName,
+    email: input.email,
     username: input.username,
+    password: input.password,
     loginUrl,
   });
-  if (input.to) {
-    dispatchResendEmail({ to: input.to, ...message });
-  }
+  dispatchResendEmail({ to: input.to, ...message });
 }

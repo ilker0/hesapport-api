@@ -3,14 +3,16 @@ import { owner } from "@hesapport-api/db/schema/owner";
 import { organization } from "@hesapport-api/db/schema/organization";
 import { eq } from "drizzle-orm";
 
-import { sendPasswordResetEmail, sendVerifyEmail } from "../email";
+import { sendPasswordResetEmail, sendVerificationEmail } from "../email";
 import { AuthErrors } from "../lib/errors";
 import { newId } from "../lib/id";
 import { hashPassword, verifyPassword } from "../lib/password";
 import { signAccessToken } from "../lib/jwt";
 import { createOrganizationForOwner } from "./organization-setup.service";
+import { buildSessionExpiresAt, createAuthSession } from "./session.service";
 import { consumeAuthToken, createAuthToken } from "./token.service";
 import type { OwnerSession } from "../types";
+import { env } from "@hesapport-api/env/server";
 
 async function getOwnerByEmail(email: string) {
   const normalized = email.trim().toLowerCase();
@@ -38,6 +40,7 @@ async function toSession(row: typeof owner.$inferSelect): Promise<OwnerSession> 
   return {
     type: "owner",
     sub: row.id,
+    sessionId: "",
     email: row.email,
     name: row.name,
     organizationId: org.id,
@@ -50,7 +53,7 @@ async function sendVerificationIfNeeded(row: typeof owner.$inferSelect) {
     principalType: "owner",
     principalId: row.id,
   });
-  sendVerifyEmail({ to: row.email, userName: row.name, rawToken: raw, principal: "owner" });
+  sendVerificationEmail({ to: row.email, userName: row.name, rawToken: raw, principal: "owner" });
 }
 
 export async function ownerSignUp(input: {
@@ -93,7 +96,10 @@ export async function ownerSignUp(input: {
   };
 }
 
-export async function ownerSignIn(input: { email: string; password: string }) {
+export async function ownerSignIn(
+  input: { email: string; password: string },
+  meta?: { ipAddress?: string; userAgent?: string },
+) {
   const row = await getOwnerByEmail(input.email);
   if (!row || !(await verifyPassword(input.password, row.passwordHash))) {
     throw AuthErrors.invalidCredentials();
@@ -104,9 +110,18 @@ export async function ownerSignIn(input: { email: string; password: string }) {
     throw AuthErrors.emailNotVerified();
   }
 
-  const session = await toSession(row);
+  const baseSession = await toSession(row);
+  const persisted = await createAuthSession({
+    principalType: "owner",
+    principalId: row.id,
+    organizationId: baseSession.organizationId,
+    ipAddress: meta?.ipAddress,
+    userAgent: meta?.userAgent,
+    expiresAt: buildSessionExpiresAt(env.JWT_EXPIRES_IN),
+  });
+  const session = { ...baseSession, sessionId: persisted.id };
   const accessToken = await signAccessToken(session);
-  return { accessToken, user: row, session };
+  return { accessToken, user: row, session, persistedSession: persisted };
 }
 
 export async function ownerVerifyEmail(rawToken: string) {
@@ -118,7 +133,14 @@ export async function ownerVerifyEmail(rawToken: string) {
   await db.update(owner).set({ emailVerified: true }).where(eq(owner.id, token.principalId));
   const row = await getOwnerById(token.principalId);
   if (!row) throw AuthErrors.notFound("Owner");
-  const session = await toSession(row);
+  const baseSession = await toSession(row);
+  const persisted = await createAuthSession({
+    principalType: "owner",
+    principalId: row.id,
+    organizationId: baseSession.organizationId,
+    expiresAt: buildSessionExpiresAt(env.JWT_EXPIRES_IN),
+  });
+  const session = { ...baseSession, sessionId: persisted.id };
   const accessToken = await signAccessToken(session);
   return { accessToken, user: row };
 }
