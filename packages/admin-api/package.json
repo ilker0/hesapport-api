@@ -15,7 +15,6 @@
     "@hesapport-api/auth": "*",
     "@hesapport-api/db": "*",
     "@hesapport-api/env": "*",
-    "better-auth": "1.6.11",
     "dotenv": "^17.2.2",
     "drizzle-orm": "^0.45.1",
     "express": "^5.1.0",

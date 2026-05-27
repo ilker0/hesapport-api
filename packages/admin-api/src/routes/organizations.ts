@@ -1,15 +1,13 @@
 import { asyncHandler } from "@hesapport-api/api/lib/async-handler";
-import { attachSession } from "@hesapport-api/api/middleware/session";
+import { withAuth } from "@hesapport-api/api/lib/auth-handler";
+import { parseIdParam } from "@hesapport-api/api/lib/session";
 import { Router } from "express";
 
+import { attachSession } from "../middleware/session";
 import { requireAdmin } from "../middleware/require-admin";
-import {
-  checkOrganizationSlugSchema,
-  createOrganizationSchema,
-  organizationIdParamSchema,
-  updateOrganizationSchema,
-} from "../schemas/organization.schema";
+import { createOrgUserAdminSchema } from "../schemas/owner.schema";
 import * as organizationsService from "../services/organizations.service";
+import * as orgUsersService from "../services/org-users.service";
 
 export const adminOrganizationsRouter = Router();
 
@@ -22,44 +20,23 @@ adminOrganizationsRouter.get(
   }),
 );
 
-adminOrganizationsRouter.post(
-  "/check-slug",
-  asyncHandler(async (req, res) => {
-    const body = checkOrganizationSlugSchema.parse(req.body);
-    res.json(await organizationsService.checkOrganizationSlug(req, body));
-  }),
-);
-
 adminOrganizationsRouter.get(
   "/:id",
   asyncHandler(async (req, res) => {
-    const id = organizationIdParamSchema.parse(req.params.id);
-    res.json(await organizationsService.getOrganization(req, id));
+    res.json(
+      await withAuth(() => organizationsService.getOrganization(parseIdParam(req.params.id))),
+    );
   }),
 );
 
 adminOrganizationsRouter.post(
-  "/",
+  "/:id/users",
   asyncHandler(async (req, res) => {
-    const input = createOrganizationSchema.parse(req.body);
-    const organization = await organizationsService.createOrganization(input);
-    res.status(201).json({ organization });
-  }),
-);
-
-adminOrganizationsRouter.patch(
-  "/:id",
-  asyncHandler(async (req, res) => {
-    const id = organizationIdParamSchema.parse(req.params.id);
-    const body = updateOrganizationSchema.parse(req.body);
-    res.json(await organizationsService.updateOrganization(req, id, body));
-  }),
-);
-
-adminOrganizationsRouter.delete(
-  "/:id",
-  asyncHandler(async (req, res) => {
-    const id = organizationIdParamSchema.parse(req.params.id);
-    res.json(await organizationsService.deleteOrganization(req, id));
+    const body = createOrgUserAdminSchema.parse({
+      ...req.body,
+      organizationId: parseIdParam(req.params.id),
+    });
+    const row = await withAuth(() => orgUsersService.adminCreateOrgUser(body));
+    res.status(201).json(row);
   }),
 );

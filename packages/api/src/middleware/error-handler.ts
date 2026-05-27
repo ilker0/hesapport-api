@@ -1,9 +1,18 @@
+import { AuthError } from "@hesapport-api/auth";
 import type { ErrorRequestHandler } from "express";
 import { ZodError } from "zod";
 
 import { HttpError } from "../lib/http-error";
 
 export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
+  if (err instanceof AuthError) {
+    res.status(err.status).json({
+      error: err.message,
+      code: err.code,
+    });
+    return;
+  }
+
   if (err instanceof HttpError) {
     res.status(err.status).json({
       error: err.message,

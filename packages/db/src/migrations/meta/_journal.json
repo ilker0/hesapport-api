@@ -5,50 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1780000000000,
-      "tag": "0008_teams",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1779900000000,
-      "tag": "0007_user_business_name",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1779700000000,
-      "tag": "0005_organization_role",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1779460000000,
-      "tag": "0003_organization",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1779461000000,
-      "tag": "0004_drop_rbac",
-      "breakpoints": true
-    },
-    {
-      "idx": 5,
-      "version": "7",
-      "when": 1779636647251,
-      "tag": "0002_chemical_mongoose",
-      "breakpoints": true
-    },
-    {
-      "idx": 6,
-      "version": "7",
-      "when": 1779708051995,
-      "tag": "0005_cool_satana",
+      "when": 1779902759098,
+      "tag": "0000_initial",
       "breakpoints": true
     }
   ]

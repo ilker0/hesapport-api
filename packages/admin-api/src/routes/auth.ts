@@ -1,42 +1,87 @@
+import {
+  adminForgotPassword,
+  adminResendVerification,
+  adminResetPassword,
+  adminSignIn,
+  adminVerifyEmail,
+} from "@hesapport-api/auth";
+import { withAuth } from "@hesapport-api/api/lib/auth-handler";
 import { asyncHandler } from "@hesapport-api/api/lib/async-handler";
-import { forwardAuthCookies, parseJsonResponse } from "@hesapport-api/api/lib/http";
-import { attachSession } from "@hesapport-api/api/middleware/session";
 import { Router } from "express";
 
+import { attachSession } from "../middleware/session";
 import { requireAdmin } from "../middleware/require-admin";
-import { adminLoginSchema } from "../schemas/auth.schema";
-import { adminLogin, adminLogout, getAdminSessionForUser } from "../services/auth.service";
+import {
+  adminSignInSchema,
+  emailOnlySchema,
+  resetPasswordSchema,
+  verifyEmailSchema,
+} from "../schemas/auth.schema";
 
 export const adminAuthRouter = Router();
 
 adminAuthRouter.post(
-  "/login",
+  "/sign-in",
   asyncHandler(async (req, res) => {
-    const input = adminLoginSchema.parse(req.body);
-    const { payload, signInResponse } = await adminLogin(input, req);
-
-    forwardAuthCookies(signInResponse, res);
-    res.json(payload);
+    const body = adminSignInSchema.parse(req.body);
+    const result = await withAuth(() => adminSignIn(body));
+    res.json({
+      accessToken: result.accessToken,
+      tokenType: "Bearer",
+      user: {
+        id: result.user.id,
+        email: result.user.email,
+        name: result.user.name,
+      },
+    });
   }),
 );
 
 adminAuthRouter.post(
-  "/logout",
-  attachSession,
+  "/forgot-password",
   asyncHandler(async (req, res) => {
-    const response = await adminLogout(req);
+    const { email } = emailOnlySchema.parse(req.body);
+    await adminForgotPassword(email);
+    res.json({ ok: true });
+  }),
+);
 
-    forwardAuthCookies(response, res);
-    res.status(response.status).json(await parseJsonResponse(response));
+adminAuthRouter.post(
+  "/reset-password",
+  asyncHandler(async (req, res) => {
+    const body = resetPasswordSchema.parse(req.body);
+    await withAuth(() => adminResetPassword(body));
+    res.json({ ok: true });
+  }),
+);
+
+adminAuthRouter.post(
+  "/verify-email",
+  asyncHandler(async (req, res) => {
+    const { token } = verifyEmailSchema.parse(req.body);
+    const result = await withAuth(() => adminVerifyEmail(token));
+    res.json({
+      accessToken: result.accessToken,
+      tokenType: "Bearer",
+      user: result.user,
+    });
+  }),
+);
+
+adminAuthRouter.post(
+  "/resend-verification",
+  asyncHandler(async (req, res) => {
+    const { email } = emailOnlySchema.parse(req.body);
+    await adminResendVerification(email);
+    res.json({ ok: true });
   }),
 );
 
 adminAuthRouter.get(
-  "/session",
+  "/me",
   attachSession,
   requireAdmin,
   asyncHandler(async (req, res) => {
-    const payload = await getAdminSessionForUser(req.session!);
-    res.json(payload);
+    res.json({ session: req.session });
   }),
 );

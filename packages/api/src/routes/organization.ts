@@ -1,193 +1,228 @@
-import { auth } from "@hesapport-api/auth";
-import { fromNodeHeaders } from "better-auth/node";
+import {
+  checkOrgUserPermission,
+  createBranch,
+  createOrgUser,
+  createOrganizationRole,
+  deleteBranch,
+  deleteOrgUser,
+  deleteOrganizationRole,
+  getOwnerProfile,
+  getRolePermissions,
+  listBranches,
+  listOrgUsers,
+  listOrganizationRoles,
+  ownerPermissions,
+  updateBranch,
+  updateOrgUser,
+  updateOrganizationRole,
+} from "@hesapport-api/auth";
 import { Router } from "express";
-import { z } from "zod";
 
 import { asyncHandler } from "../lib/async-handler";
-import { requireAuth } from "../middleware/require-auth";
+import { withAuth } from "../lib/auth-handler";
+import { HttpError } from "../lib/http-error";
 import {
-  createOrgRoleSchema,
-  deleteOrgRoleSchema,
-  getOrgRoleQuerySchema,
-  getMemberPermissionsQuerySchema,
-  hasPermissionSchema,
-  updateOrgRoleSchema,
-} from "../schemas/org-role.schema";
+  assertOrgUserSession,
+  assertOwnerSession,
+  getOrganizationId,
+  parseIdParam,
+} from "../lib/session";
+import { requireOwner, requireOwnerOrOrgUser } from "../middleware/require-auth";
 import {
-  inviteMemberSchema,
-  removeMemberSchema,
-  setActiveOrganizationSchema,
-  updateMemberRoleSchema,
-  updateOrganizationSchema,
+  createBranchSchema,
+  createOrgUserSchema,
+  createRoleSchema,
+  updateBranchSchema,
+  updateOrgUserSchema,
+  updateRoleSchema,
 } from "../schemas/organization.schema";
-import * as organizationService from "../services/organization.service";
-import { teamsRouter } from "./teams";
 
 export const organizationRouter = Router();
 
-organizationRouter.use(requireAuth);
+organizationRouter.use(requireOwnerOrOrgUser);
 
 organizationRouter.get(
   "/",
   asyncHandler(async (req, res) => {
-    res.json(await organizationService.listOrganizations(req));
-  }),
-);
+    const session = req.session!;
 
-organizationRouter.get(
-  "/active",
-  asyncHandler(async (req, res) => {
-    res.json(await organizationService.getActiveOrganization(req));
-  }),
-);
+    if (session.type === "owner") {
+      const profile = await withAuth(() => getOwnerProfile(session.sub));
+      res.json(profile);
+      return;
+    }
 
-organizationRouter.get(
-  "/active/member",
-  asyncHandler(async (req, res) => {
-    res.json(await organizationService.getActiveMember(req));
-  }),
-);
-
-organizationRouter.post(
-  "/active",
-  asyncHandler(async (req, res) => {
-    const body = setActiveOrganizationSchema.parse(req.body);
-    res.json(await organizationService.setActiveOrganization(req, body));
-  }),
-);
-
-organizationRouter.patch(
-  "/",
-  asyncHandler(async (req, res) => {
-    const body = updateOrganizationSchema.parse(req.body);
-    const { organizationId, ...data } = body;
-    res.json(
-      await organizationService.updateOrganization(req, {
-        organizationId,
-        data,
-      }),
-    );
-  }),
-);
-
-organizationRouter.get(
-  "/members",
-  asyncHandler(async (req, res) => {
-    const organizationId =
-      typeof req.query.organizationId === "string" ? req.query.organizationId : undefined;
-    res.json(await organizationService.listMembers(req, organizationId));
-  }),
-);
-
-organizationRouter.post(
-  "/members/invite",
-  asyncHandler(async (req, res) => {
-    const body = inviteMemberSchema.parse(req.body);
-    res.status(201).json(await organizationService.inviteMember(req, body));
-  }),
-);
-
-organizationRouter.patch(
-  "/members/role",
-  asyncHandler(async (req, res) => {
-    const body = updateMemberRoleSchema.parse(req.body);
-    res.json(await organizationService.updateMemberRole(req, body));
-  }),
-);
-
-organizationRouter.post(
-  "/members/remove",
-  asyncHandler(async (req, res) => {
-    const body = removeMemberSchema.parse(req.body);
-    res.json(await organizationService.removeMember(req, body));
-  }),
-);
-
-organizationRouter.get(
-  "/invitations",
-  asyncHandler(async (req, res) => {
-    const organizationId =
-      typeof req.query.organizationId === "string" ? req.query.organizationId : undefined;
-    res.json(await organizationService.listInvitations(req, organizationId));
-  }),
-);
-
-organizationRouter.post(
-  "/invitations/:id/cancel",
-  asyncHandler(async (req, res) => {
-    const invitationId = z.string().parse(req.params.id);
-    res.json(await organizationService.cancelInvitation(req, invitationId));
-  }),
-);
-
-organizationRouter.post(
-  "/invitations/:id/accept",
-  asyncHandler(async (req, res) => {
-    const invitationId = z.string().parse(req.params.id);
-    res.json(
-      await auth.api.acceptInvitation({
-        headers: fromNodeHeaders(req.headers),
-        body: { invitationId },
-      }),
-    );
-  }),
-);
-
-organizationRouter.get(
-  "/roles",
-  asyncHandler(async (req, res) => {
-    const organizationId =
-      typeof req.query.organizationId === "string" ? req.query.organizationId : undefined;
-    res.json(await organizationService.listOrgRoles(req, organizationId));
-  }),
-);
-
-organizationRouter.get(
-  "/roles/detail",
-  asyncHandler(async (req, res) => {
-    const query = getOrgRoleQuerySchema.parse(req.query);
-    res.json(await organizationService.getOrgRole(req, query));
-  }),
-);
-
-organizationRouter.post(
-  "/roles",
-  asyncHandler(async (req, res) => {
-    const body = createOrgRoleSchema.parse(req.body);
-    res.status(201).json(await organizationService.createOrgRole(req, body));
-  }),
-);
-
-organizationRouter.patch(
-  "/roles",
-  asyncHandler(async (req, res) => {
-    const body = updateOrgRoleSchema.parse(req.body);
-    res.json(await organizationService.updateOrgRole(req, body));
-  }),
-);
-
-organizationRouter.post(
-  "/roles/delete",
-  asyncHandler(async (req, res) => {
-    const body = deleteOrgRoleSchema.parse(req.body);
-    res.json(await organizationService.deleteOrgRole(req, body));
+    const orgUser = assertOrgUserSession(session);
+    res.json({
+      organizationId: orgUser.organizationId,
+      branchId: orgUser.branchId,
+      roleId: orgUser.roleId,
+    });
   }),
 );
 
 organizationRouter.get(
   "/permissions",
   asyncHandler(async (req, res) => {
-    const query = getMemberPermissionsQuerySchema.parse(req.query);
-    res.json(await organizationService.getMemberPermissions(req, query.organizationId));
+    const session = req.session!;
+
+    if (session.type === "owner") {
+      res.json({ permissions: ownerPermissions, role: "owner" });
+      return;
+    }
+
+    const orgUser = assertOrgUserSession(session);
+    const permissions = await getRolePermissions(orgUser.organizationId, orgUser.roleId);
+    res.json({ permissions, roleId: orgUser.roleId });
+  }),
+);
+
+organizationRouter.get(
+  "/branches",
+  asyncHandler(async (req, res) => {
+    const organizationId = getOrganizationId(req.session!);
+    res.json(await listBranches(organizationId));
   }),
 );
 
 organizationRouter.post(
-  "/permissions/check",
+  "/branches",
+  requireOwner,
   asyncHandler(async (req, res) => {
-    const body = hasPermissionSchema.parse(req.body);
-    res.json(await organizationService.hasOrganizationPermission(req, body));
+    const body = createBranchSchema.parse(req.body);
+    const organizationId = getOrganizationId(assertOwnerSession(req.session!));
+    const row = await withAuth(() => createBranch(organizationId, body.name));
+    res.status(201).json(row);
   }),
 );
 
-organizationRouter.use("/teams", teamsRouter);
+organizationRouter.patch(
+  "/branches/:id",
+  requireOwner,
+  asyncHandler(async (req, res) => {
+    const body = updateBranchSchema.parse(req.body);
+    const organizationId = getOrganizationId(assertOwnerSession(req.session!));
+    const row = await withAuth(() => updateBranch(organizationId, parseIdParam(req.params.id), body));
+    res.json(row);
+  }),
+);
+
+organizationRouter.delete(
+  "/branches/:id",
+  requireOwner,
+  asyncHandler(async (req, res) => {
+    const organizationId = getOrganizationId(assertOwnerSession(req.session!));
+    const row = await withAuth(() => deleteBranch(organizationId, parseIdParam(req.params.id)));
+    res.json(row);
+  }),
+);
+
+organizationRouter.get(
+  "/roles",
+  asyncHandler(async (req, res) => {
+    res.json(await listOrganizationRoles(getOrganizationId(req.session!)));
+  }),
+);
+
+organizationRouter.post(
+  "/roles",
+  requireOwner,
+  asyncHandler(async (req, res) => {
+    const body = createRoleSchema.parse(req.body);
+    const organizationId = getOrganizationId(assertOwnerSession(req.session!));
+    const row = await withAuth(() =>
+      createOrganizationRole({
+        organizationId,
+        name: body.name,
+        permissions: body.permissions,
+      }),
+    );
+    res.status(201).json(row);
+  }),
+);
+
+organizationRouter.patch(
+  "/roles/:id",
+  requireOwner,
+  asyncHandler(async (req, res) => {
+    const body = updateRoleSchema.parse(req.body);
+    const organizationId = getOrganizationId(assertOwnerSession(req.session!));
+    const row = await withAuth(() =>
+      updateOrganizationRole(organizationId, parseIdParam(req.params.id), body),
+    );
+    res.json(row);
+  }),
+);
+
+organizationRouter.delete(
+  "/roles/:id",
+  requireOwner,
+  asyncHandler(async (req, res) => {
+    const organizationId = getOrganizationId(assertOwnerSession(req.session!));
+    const row = await withAuth(() =>
+      deleteOrganizationRole(organizationId, parseIdParam(req.params.id)),
+    );
+    res.json(row);
+  }),
+);
+
+organizationRouter.get(
+  "/users",
+  asyncHandler(async (req, res) => {
+    const session = req.session!;
+    const organizationId = getOrganizationId(session);
+
+    if (session.type === "org_user") {
+      const allowed = await checkOrgUserPermission({
+        organizationId,
+        roleId: session.roleId,
+        resource: "org_user",
+        action: "read",
+      });
+      if (!allowed) throw new HttpError(403, "Forbidden");
+    }
+
+    res.json(await listOrgUsers(organizationId));
+  }),
+);
+
+organizationRouter.post(
+  "/users",
+  requireOwner,
+  asyncHandler(async (req, res) => {
+    const body = createOrgUserSchema.parse(req.body);
+    const organizationId = getOrganizationId(assertOwnerSession(req.session!));
+    const row = await withAuth(() =>
+      createOrgUser({
+        organizationId,
+        ...body,
+      }),
+    );
+    res.status(201).json(row);
+  }),
+);
+
+organizationRouter.patch(
+  "/users/:id",
+  requireOwner,
+  asyncHandler(async (req, res) => {
+    const body = updateOrgUserSchema.parse(req.body);
+    const organizationId = getOrganizationId(assertOwnerSession(req.session!));
+    const row = await withAuth(() =>
+      updateOrgUser(organizationId, parseIdParam(req.params.id), body),
+    );
+    res.json(row);
+  }),
+);
+
+organizationRouter.delete(
+  "/users/:id",
+  requireOwner,
+  asyncHandler(async (req, res) => {
+    const organizationId = getOrganizationId(assertOwnerSession(req.session!));
+    const row = await withAuth(() =>
+      deleteOrgUser(organizationId, parseIdParam(req.params.id)),
+    );
+    res.json(row);
+  }),
+);

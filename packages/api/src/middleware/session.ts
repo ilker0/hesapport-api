@@ -1,18 +1,16 @@
-import { auth } from "@hesapport-api/auth";
-import { fromNodeHeaders } from "better-auth/node";
+import { resolveSession } from "@hesapport-api/auth";
 import type { NextFunction, Request, Response } from "express";
 
-export type AppSession = NonNullable<Awaited<ReturnType<typeof auth.api.getSession>>>;
+import type { SessionPayload } from "@hesapport-api/auth";
 
 export async function attachSession(req: Request, _res: Response, next: NextFunction) {
-  req.session = await auth.api.getSession({
-    headers: fromNodeHeaders(req.headers),
-  });
+  const authorization = req.headers.authorization;
+  req.session = (await resolveSession(typeof authorization === "string" ? authorization : undefined)) ?? undefined;
   next();
 }
 
 declare module "express-serve-static-core" {
   interface Request {
-    session?: AppSession | null;
+    session?: SessionPayload;
   }
 }

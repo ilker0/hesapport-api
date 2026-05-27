@@ -23,10 +23,6 @@ type DispatchEmailInput = {
   text: string;
 };
 
-/**
- * Resend ile e-posta gönderir (await edilmez — auth hook timing).
- * @see https://resend.com/docs/send-with-nodejs
- */
 export function dispatchResendEmail(input: DispatchEmailInput) {
   if (env.NODE_ENV !== "production") {
     console.error(`[email] to=${input.to} subject=${input.subject}`);
@@ -34,14 +30,13 @@ export function dispatchResendEmail(input: DispatchEmailInput) {
   }
 
   const resend = getResend();
-
   if (!resend) {
-    console.error("[email] skipped — set RESEND_API_KEY (https://resend.com/api-keys)");
+    console.error("[email] skipped — set RESEND_API_KEY");
     return;
   }
 
   if (env.NODE_ENV !== "production" && !env.EMAIL_SEND_IN_DEV) {
-    console.error("[email] dev send disabled — set EMAIL_SEND_IN_DEV=true to deliver via Resend");
+    console.error("[email] dev send disabled — EMAIL_SEND_IN_DEV=true");
     return;
   }
 
@@ -53,13 +48,7 @@ export function dispatchResendEmail(input: DispatchEmailInput) {
       html: input.html,
       text: input.text,
     })
-    .then(({ data, error }) => {
-      if (error) {
-        console.error("[email] Resend error:", error.message);
-        return;
-      }
-      if (env.NODE_ENV !== "production" && data?.id) {
-        console.error(`[email] sent id=${data.id}`);
-      }
+    .then(({ error }) => {
+      if (error) console.error("[email] Resend error:", error.message);
     });
 }

@@ -3,11 +3,14 @@ import { Router } from "express";
 import { attachSession } from "../middleware/session";
 import { requireAuth } from "../middleware/require-auth";
 import { asyncHandler } from "../lib/async-handler";
+import { authRouter } from "./auth";
 import { organizationRouter } from "./organization";
 import { todoRouter } from "./todo";
 
 export function createAppRouter() {
   const router = Router();
+
+  router.use("/auth", authRouter);
 
   router.use(attachSession);
 
@@ -21,7 +24,7 @@ export function createAppRouter() {
     asyncHandler(async (req, res) => {
       res.json({
         message: "This is private",
-        user: req.session!.user,
+        session: req.session,
       });
     }),
   );

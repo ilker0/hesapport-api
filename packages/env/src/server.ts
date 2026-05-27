@@ -6,35 +6,33 @@ export const env = createEnv({
   server: {
     PORT: z.string().default("8080"),
     DATABASE_URL: z.string().min(1),
-    BETTER_AUTH_API_KEY: z.string().min(1),
-    /** Better Auth Infrastructure (dash analytics). */
-    BETTER_AUTH_API_URL: z.url().optional(),
+    JWT_SECRET: z.string().min(32),
+    JWT_EXPIRES_IN: z.string().default("7d"),
     /** Resend — https://resend.com/docs/introduction */
     RESEND_API_KEY: z.string().min(1).optional(),
     RESEND_FROM: z.string().min(3).default("Hesapport <onboarding@resend.dev>"),
-    BETTER_AUTH_SECRET: z.string().min(32),
-    BETTER_AUTH_URL: z.url(),
     APP_NAME: z.string().min(1).default("Hesapport"),
     APP_ORIGIN: z.url(),
-    /** Dev ortamında Resend ile gerçek gönderim (RESEND_API_KEY gerekir). */
+    API_PUBLIC_URL: z.url().optional(),
     EMAIL_SEND_IN_DEV: z
       .enum(["true", "false"])
       .default("true")
       .transform((v) => v === "true"),
     CORS_ORIGIN: z.url(),
-    /** E-posta doğrulama sonrası yönlendirme (HTML sayfa). Varsayılan: {BETTER_AUTH_URL origin}/auth/verification/complete */
     EMAIL_VERIFICATION_CALLBACK_URL: z.url().optional(),
     ADMIN_CORS_ORIGIN: z.url().optional(),
-    /** Max accounts per browser/device (Better Auth multi-session plugin). */
-    MULTI_SESSION_MAXIMUM_SESSIONS: z.coerce.number().int().positive().default(10),
-    ORG_MAXIMUM_TEAMS: z.coerce.number().int().positive().default(10),
-    ORG_ALLOW_REMOVING_ALL_TEAMS: z
-      .enum(["true", "false"])
-      .default("false")
-      .transform((v) => v === "true"),
-    ORG_DEFAULT_TEAM_NAME: z.string().min(1).default("Ana Şube"),
+    ORG_MAXIMUM_BRANCHES: z.coerce.number().int().positive().default(50),
+    ORG_DEFAULT_BRANCH_NAME: z.string().min(1).default("Ana Şube"),
+    AUTH_TOKEN_EXPIRES_HOURS: z.coerce.number().int().positive().default(24),
     NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
+    ADMIN_EMAIL: z.string().email().optional(),
+    ADMIN_PASSWORD: z.string().min(8).optional(),
+    ADMIN_NAME: z.string().min(1).optional(),
   },
   runtimeEnv: process.env,
   emptyStringAsUndefined: true,
 });
+
+export function getApiPublicUrl() {
+  return env.API_PUBLIC_URL ?? env.APP_ORIGIN;
+}

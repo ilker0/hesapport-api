@@ -13,16 +13,17 @@
     "seed:admin": "tsx --env-file=../../apps/server/.env src/seed-admin.ts"
   },
   "dependencies": {
-    "@better-auth/infra": "^0.2.8",
     "@hesapport-api/db": "*",
     "@hesapport-api/env": "*",
-    "better-auth": "1.6.11",
-    "dotenv": "^17.2.2",
+    "bcryptjs": "^3.0.2",
+    "drizzle-orm": "^0.45.1",
+    "jose": "^6.0.11",
     "resend": "^4.8.0",
     "zod": "^4.1.13"
   },
   "devDependencies": {
     "@hesapport-api/config": "*",
+    "@types/bcryptjs": "^2.4.6",
     "tsx": "^4.19.2",
     "typescript": "^6"
   }
